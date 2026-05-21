@@ -24,7 +24,7 @@ export function HUD() {
     waiting: 'WAITING...',
   };
 
-  const timeLeft = Math.max(0, Math.ceil((round.phaseEndTime - (snapshot?.serverTime || Date.now())) / 1000));
+  const timeLeft = Math.max(0, Math.ceil((round.phaseEndTime - (snapshot?.timestamp || Date.now())) / 1000));
   const timeColor = timeLeft <= 10 ? 'text-brand-500' : 'text-white';
 
   // ── Interaction text: mutually exclusive, priority-based ──
