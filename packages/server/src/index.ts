@@ -52,8 +52,7 @@ io.on('connection', (socket) => {
   registerGameHandlers(socket, io, lobbyManager);
 
   socket.on('ping', (clientTime) => {
-    socket.emit('lobby_state', lobbyManager.getLobbyStateForSocket(socket.id) as any);
-    // Ping is handled by measuring round-trip in client
+    socket.emit('pong', clientTime);
   });
 
   socket.on('disconnect', (reason) => {

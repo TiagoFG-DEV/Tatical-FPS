@@ -55,7 +55,9 @@ export function MainMenu() {
 
     socket.on('lobby_state', (state) => {
       setLobby(state);
-      navigate('/lobby');
+      if (state) {
+        navigate('/lobby');
+      }
       setConnecting(false);
     });
 
