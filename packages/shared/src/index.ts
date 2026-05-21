@@ -450,8 +450,8 @@ export const GAME_CONSTANTS = {
   // Timing (ms)
   BUY_PHASE_DURATION: 30_000,
   ROUND_DURATION: 120_000, // 2 minutes
-  SPIKE_PLANT_TIME: 4_000,
-  SPIKE_DEFUSE_TIME: 7_000,
+  SPIKE_PLANT_TIME: 2_000,
+  SPIKE_DEFUSE_TIME: 3_500,
   SPIKE_EXPLODE_COUNTDOWN: 30_000, // 30s explosion timer
   ROUND_END_DELAY: 5_000,
   HALFTIME_DELAY: 8_000,
@@ -553,7 +553,7 @@ export const WEAPON_STATS: Record<WeaponId, WeaponStats> = {
   phantom: {
     id: 'phantom', name: 'Phantom', slot: 'primary', cost: 2900,
     damage: { head: 156, body: 39, legs: 33 },
-    fireRate: 11, reloadTime: 2500, magSize: 30, reserveAmmo: 90,
+    fireRate: 3.66, reloadTime: 2500, magSize: 30, reserveAmmo: 90,
     range: 800, armor_penetration: 0.95,
     firstShotAccuracy: 0.96, moveInaccuracy: 7, standInaccuracy: 0.8, crouchInaccuracy: 0.3,
     recoilPattern: Array.from({length: 30}, (_, i) => ({
@@ -565,7 +565,7 @@ export const WEAPON_STATS: Record<WeaponId, WeaponStats> = {
   vandal: {
     id: 'vandal', name: 'Vandal', slot: 'primary', cost: 2900,
     damage: { head: 160, body: 40, legs: 34 },
-    fireRate: 9.75, reloadTime: 2500, magSize: 25, reserveAmmo: 75,
+    fireRate: 3.25, reloadTime: 2500, magSize: 25, reserveAmmo: 75,
     range: 1000, armor_penetration: 0.95,
     firstShotAccuracy: 0.97, moveInaccuracy: 8, standInaccuracy: 1.0, crouchInaccuracy: 0.4,
     recoilPattern: Array.from({length: 25}, (_, i) => ({
