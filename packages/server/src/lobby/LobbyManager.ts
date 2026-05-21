@@ -159,9 +159,10 @@ export class LobbyManager {
         const room = this.gameRooms.get(code);
         if (room) {
           room.swapSocketId(oldSocketId, newSocketId);
-          // Let client know they are back in the lobby state
-          this.io.to(newSocketId).emit('lobby_state', lobby);
         }
+        
+        // Let client know they are back in the lobby state
+        this.io.to(newSocketId).emit('lobby_state', lobby);
         return true;
       }
     }
