@@ -170,7 +170,8 @@ export function LobbyPage() {
     setChatInput('');
   };
 
-  const canStart = lobby.players.length >= 1;
+  const allReady = lobby.players.length > 0 && lobby.players.every(p => p.isReady);
+  const canStart = allReady;
 
   return (
     <div style={{ height: '100vh', minHeight: '100vh', background: '#080808', color: 'white', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif', overflow: 'hidden' }}>
@@ -279,7 +280,9 @@ export function LobbyPage() {
             )}
 
             {!canStart && isHost && !isTeamMode && (
-              <p style={{ color: '#7f1d1d', fontSize: '0.6rem', textAlign: 'center', fontWeight: 700 }}>NEED ≥1 PLAYER PER SIDE</p>
+              <p style={{ color: '#7f1d1d', fontSize: '0.6rem', textAlign: 'center', fontWeight: 700 }}>
+                {lobby.players.length === 0 ? 'NEED ≥1 PLAYER PER SIDE' : 'WAITING FOR ALL PLAYERS TO BE READY'}
+              </p>
             )}
           </div>
 

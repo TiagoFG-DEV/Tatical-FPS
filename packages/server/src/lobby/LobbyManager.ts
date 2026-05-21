@@ -382,6 +382,9 @@ export class LobbyManager {
     // Require at least 1 player total
     if (lobby.players.length < 1) return false;
 
+    // Require all players to be ready
+    if (!lobby.players.every(p => p.isReady)) return false;
+
     lobby.mapId = mapId;
     lobby.gameStarting = true;
     lobby.countdownSeconds = 5;

@@ -4,7 +4,7 @@ import { WEAPON_STATS, GAME_CONSTANTS } from '@tactical-fps/shared';
 import type { WeaponId } from '@tactical-fps/shared';
 
 export function HUD() {
-  const { myPlayer, round, spike, ping, isInPlantZone } = useGameStore();
+  const { myPlayer, round, spike, ping, isInPlantZone, snapshot } = useGameStore();
 
   if (!myPlayer || !round) return null;
 
@@ -24,7 +24,7 @@ export function HUD() {
     waiting: 'WAITING...',
   };
 
-  const timeLeft = Math.max(0, Math.ceil((round.phaseEndTime - Date.now()) / 1000));
+  const timeLeft = Math.max(0, Math.ceil((round.phaseEndTime - (snapshot?.serverTime || Date.now())) / 1000));
   const timeColor = timeLeft <= 10 ? 'text-brand-500' : 'text-white';
 
   // ── Interaction text: mutually exclusive, priority-based ──
