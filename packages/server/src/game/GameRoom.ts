@@ -530,19 +530,11 @@ export class GameRoom {
     // Build visibility-filtered snapshots per player
     const playerList = Array.from(this.players.values());
 
-    for (const [socketId, viewer] of this.players) {
-      const visibleIds = this.visibility.getVisiblePlayers(viewer, playerList);
-
+    for (const [socketId] of this.players) {
       const snapshot: GameSnapshot = {
         tick: this.tick,
         timestamp: Date.now(),
-        players: playerList.map(p => {
-          if (p.id === socketId || p.team === viewer.team || visibleIds.has(p.id)) {
-            return p;
-          }
-          // Ghost state: position hidden, only alive status
-          return { ...p, position: { x: -9999, y: -9999 } };
-        }),
+        players: playerList,
         bullets: [],
         spike: this.spike,
         round: this.round,

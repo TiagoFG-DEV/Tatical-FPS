@@ -425,7 +425,7 @@ export class GameRenderer {
 
     // Draw fog everywhere EXCEPT the visible polygon using evenodd fill rule
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
     ctx.beginPath();
     // Outer bounding rectangle (fills everything)
     ctx.rect(-BOUND, -BOUND, BOUND * 2, BOUND * 2);
@@ -440,7 +440,7 @@ export class GameRenderer {
     ctx.moveTo(hits[0].x, hits[0].y);
     for (let i = 1; i < hits.length; i++) ctx.lineTo(hits[i].x, hits[i].y);
     ctx.closePath();
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.95)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1.0)';
     ctx.lineWidth = 1.5;
     ctx.stroke();
     
