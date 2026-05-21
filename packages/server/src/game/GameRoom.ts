@@ -735,14 +735,14 @@ export class GameRoom {
       this.io.to(this.code).emit('spike_event', this.spike);
     }
 
-    // Completely remove player
-    this.players.delete(socketId);
-    this.inputBuffers.delete(socketId);
+    // Mark as disconnected
+    player.isDisconnected = true;
+    player.status = 'dead'; // Kill them if they disconnect
 
     // If both teams originally had > 0 players, and one team is now empty, end the match
     const originalHasBoth = this.initialPlayersCount.attackers > 0 && this.initialPlayersCount.defenders > 0;
     if (originalHasBoth && this.round.phase !== 'match_end') {
-      const remainingOnTeam = Array.from(this.players.values()).filter(p => p.team === player.team).length;
+      const remainingOnTeam = Array.from(this.players.values()).filter(p => p.team === player.team && !p.isDisconnected).length;
       if (remainingOnTeam === 0) {
         const winningTeam = player.team === 'attackers' ? 'defenders' : 'attackers';
         // Force score to 1 less than win threshold so endRound ticks it to win
@@ -754,6 +754,26 @@ export class GameRoom {
         const reason = player.team === 'attackers' ? 'attackers_eliminated' : 'defenders_eliminated';
         this.match.endRound(this.round, winningTeam, reason, this.players, this.economy, this.io, this.code, (e) => this.handleMatchEvent(e));
       }
+    }
+  }
+
+  swapSocketId(oldSocketId: string, newSocketId: string): void {
+    const player = this.players.get(oldSocketId);
+    if (player) {
+      player.id = newSocketId;
+      player.isDisconnected = false;
+      this.players.set(newSocketId, player);
+      this.players.delete(oldSocketId);
+    }
+    const buffer = this.inputBuffers.get(oldSocketId);
+    if (buffer) {
+      this.inputBuffers.set(newSocketId, buffer);
+      this.inputBuffers.delete(oldSocketId);
+    }
+    const ping = this.pingMap.get(oldSocketId);
+    if (ping !== undefined) {
+      this.pingMap.set(newSocketId, ping);
+      this.pingMap.delete(oldSocketId);
     }
   }
 

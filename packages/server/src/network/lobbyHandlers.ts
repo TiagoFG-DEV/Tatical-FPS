@@ -10,10 +10,10 @@ export function registerLobbyHandlers(
 ): void {
 
   // ─── Create Lobby ───────────────────────
-  socket.on('create_lobby', (name: string, mode?: LobbyMode) => {
+  socket.on('create_lobby', (name: string, mode?: LobbyMode, sessionToken?: string) => {
     const playerName = name.trim().slice(0, 24) || `Player${socket.id.slice(0, 4)}`;
     const lobbyMode: LobbyMode = mode ?? 'custom';
-    const lobby = lobbyManager.createLobby(socket.id, playerName, lobbyMode);
+    const lobby = lobbyManager.createLobby(socket.id, playerName, lobbyMode, sessionToken);
 
     if (!lobby) {
       socket.emit('lobby_error', 'Already in a lobby.');
@@ -26,9 +26,9 @@ export function registerLobbyHandlers(
   });
 
   // ─── Join Lobby ──────────────────────────
-  socket.on('join_lobby', (code: string, name: string) => {
+  socket.on('join_lobby', (code: string, name: string, sessionToken?: string) => {
     const playerName = name.trim().slice(0, 24) || `Player${socket.id.slice(0, 4)}`;
-    const lobby = lobbyManager.joinLobby(socket.id, code, playerName);
+    const lobby = lobbyManager.joinLobby(socket.id, code, playerName, sessionToken);
 
     if (!lobby) {
       socket.emit('lobby_error', 'Lobby not found, full, or already starting.');
@@ -45,8 +45,17 @@ export function registerLobbyHandlers(
     const code = lobbyManager.getLobbyCode(socket.id);
     if (code) {
       socket.leave(code);
-      lobbyManager.leaveLobby(socket.id);
+      lobbyManager.leaveLobby(socket.id, true);
       lobbyManager.broadcastLobbyState(code);
+    }
+  });
+
+  socket.on('reconnect_lobby', (sessionToken: string) => {
+    if (!sessionToken) return;
+    const ok = lobbyManager.reconnectPlayer(socket.id, sessionToken);
+    if (ok) {
+      const code = lobbyManager.getLobbyCode(socket.id);
+      if (code) socket.join(code);
     }
   });
 

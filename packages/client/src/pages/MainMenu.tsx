@@ -43,6 +43,12 @@ export function MainMenu() {
   const nameRef = useRef(playerName);
   nameRef.current = playerName;
 
+  // Initialize session token
+  const sessionToken = useRef(localStorage.getItem('sessionToken') || Math.random().toString(36).substring(2, 15));
+  useEffect(() => {
+    localStorage.setItem('sessionToken', sessionToken.current);
+  }, []);
+
   // Animate background tokens
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 60);
@@ -51,7 +57,11 @@ export function MainMenu() {
 
   useEffect(() => {
     socket.connect();
-    socket.on('connect', () => setMyId(socket.id ?? ''));
+    socket.on('connect', () => {
+      setMyId(socket.id ?? '');
+      // Try to reconnect silently
+      socket.emit('reconnect_lobby', sessionToken.current);
+    });
 
     socket.on('lobby_state', (state) => {
       setLobby(state);
@@ -87,19 +97,19 @@ export function MainMenu() {
   const handleCreate = () => {
     if (!playerName.trim()) return setError('Enter a name first.');
     setConnecting(true);
-    socket.emit('create_lobby', playerName.trim(), 'custom');
+    socket.emit('create_lobby', playerName.trim(), 'custom', sessionToken.current);
   };
 
   const handleJoin = () => {
     if (!playerName.trim()) return setError('Enter a name first.');
     if (joinCode.length < 6) return setError('Enter a valid 6-character lobby code.');
     setConnecting(true);
-    socket.emit('join_lobby', joinCode.toUpperCase(), playerName.trim());
+    socket.emit('join_lobby', joinCode.toUpperCase(), playerName.trim(), sessionToken.current);
   };
 
   const handleQueueJoin = () => {
     if (!playerName.trim()) return setError('Enter a name first.');
-    socket.emit('queue_join', playerName.trim(), teamName.trim() || 'TEAM');
+    socket.emit('queue_join', playerName.trim(), teamName.trim() || 'TEAM', [], sessionToken.current);
     setScreen('online_queue');
   };
 

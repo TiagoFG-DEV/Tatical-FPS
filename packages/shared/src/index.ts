@@ -103,6 +103,7 @@ export interface PlayerState {
   isReloading: boolean;
   isCrouching: boolean;
   isWalking: boolean;
+  isDisconnected?: boolean;
   hasSpike: boolean;      // hasSpike = hasNuke in game narrative
   kills: number;
   deaths: number;
@@ -270,6 +271,7 @@ export interface LobbyPlayer {
   isReady: boolean;
   isHost: boolean;
   ping: number;
+  sessionToken?: string;
 }
 
 export interface LobbyState {
@@ -318,6 +320,7 @@ export interface ServerToClientEvents {
   lobby_chat: (msg: ChatMessage) => void;
   lobby_error: (error: string) => void;
   match_starting: (countdown: number) => void;
+  pong: (clientTime: number) => void;
 
   // Matchmaking
   queue_status: (status: { position: number; estimated: number; status: MatchmakingStatus }) => void;
@@ -339,9 +342,10 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   // Lobby
-  create_lobby: (name: string, mode?: LobbyMode) => void;
-  join_lobby: (code: string, name: string) => void;
+  create_lobby: (name: string, mode?: LobbyMode, sessionToken?: string) => void;
+  join_lobby: (code: string, name: string, sessionToken?: string) => void;
   leave_lobby: () => void;
+  reconnect_lobby: (sessionToken: string) => void;
   set_team: (team: Team) => void;
   set_ready: (ready: boolean) => void;
   start_match: (mapId: MapId) => void;
@@ -353,7 +357,7 @@ export interface ClientToServerEvents {
   set_map: (mapId: MapId) => void;
 
   // Matchmaking
-  queue_join: (playerName: string, teamName: string, partyMembers?: string[]) => void;
+  queue_join: (playerName: string, teamName: string, partyMembers?: string[], sessionToken?: string) => void;
   queue_leave: () => void;
 
   // Game

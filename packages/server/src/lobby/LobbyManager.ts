@@ -32,7 +32,7 @@ export class LobbyManager {
   }
 
   // ─── Create Lobby ───────────────────────
-  createLobby(socketId: string, playerName: string, mode: LobbyMode = 'custom'): LobbyState | null {
+  createLobby(socketId: string, playerName: string, mode: LobbyMode = 'custom', sessionToken?: string): LobbyState | null {
     if (this.playerLobby.has(socketId)) return null;
 
     const code = this.generateCode();
@@ -43,6 +43,7 @@ export class LobbyManager {
       isReady: false,
       isHost: true,
       ping: 0,
+      sessionToken,
     };
 
     const lobby: LobbyState = {
@@ -63,7 +64,7 @@ export class LobbyManager {
   }
 
   // ─── Join Lobby ──────────────────────────
-  joinLobby(socketId: string, code: string, playerName: string): LobbyState | null {
+  joinLobby(socketId: string, code: string, playerName: string, sessionToken?: string): LobbyState | null {
     const lobby = this.lobbies.get(code.toUpperCase());
     if (!lobby) return null;
     if (lobby.players.length >= lobby.maxPlayers) return null;
@@ -90,6 +91,7 @@ export class LobbyManager {
       isReady: false,
       isHost: false,
       ping: 0,
+      sessionToken,
     };
 
     lobby.players.push(player);
@@ -98,12 +100,17 @@ export class LobbyManager {
   }
 
   // ─── Leave Lobby ─────────────────────────
-  leaveLobby(socketId: string): string | null {
+  leaveLobby(socketId: string, forceLeave: boolean = false): string | null {
     const code = this.playerLobby.get(socketId);
     if (!code) return null;
 
     const lobby = this.lobbies.get(code);
     if (!lobby) return null;
+
+    if (!forceLeave && lobby.gameStarting) {
+      // Do not remove player from lobby if game is running, so they can reconnect
+      return code;
+    }
 
     lobby.players = lobby.players.filter(p => p.id !== socketId);
     this.playerLobby.delete(socketId);
@@ -128,14 +135,37 @@ export class LobbyManager {
     // Remove from matchmaking queue if present
     this.matchmakingQueue = this.matchmakingQueue.filter(e => e.socketId !== socketId);
 
-    const code = this.leaveLobby(socketId);
-    if (code) {
-      const lobby = this.lobbies.get(code);
-      if (lobby) this.broadcastLobbyState(code);
+    const room = this.getGameRoomForSocket(socketId);
+    if (room) {
+      room.handleDisconnect(socketId);
     }
 
-    const room = this.getGameRoomForSocket(socketId);
-    if (room) room.handleDisconnect(socketId);
+    const code = this.leaveLobby(socketId, false);
+    if (code) {
+      const lobby = this.lobbies.get(code);
+      if (lobby && !lobby.gameStarting) this.broadcastLobbyState(code);
+    }
+  }
+
+  reconnectPlayer(newSocketId: string, sessionToken: string): boolean {
+    for (const [code, lobby] of this.lobbies.entries()) {
+      const p = lobby.players.find(x => x.sessionToken === sessionToken);
+      if (p) {
+        const oldSocketId = p.id;
+        p.id = newSocketId;
+        this.playerLobby.delete(oldSocketId);
+        this.playerLobby.set(newSocketId, code);
+
+        const room = this.gameRooms.get(code);
+        if (room) {
+          room.swapSocketId(oldSocketId, newSocketId);
+          // Let client know they are back in the lobby state
+          this.io.to(newSocketId).emit('lobby_state', lobby);
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   // ─── Matchmaking Queue ───────────────────

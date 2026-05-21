@@ -145,6 +145,15 @@ export class MatchSystem {
           // Swap sides and scores
           for (const [, p] of players) {
             p.team = p.team === 'attackers' ? 'defenders' : 'attackers';
+            
+            // Reset economy and inventory for the new half
+            p.credits = GAME_CONSTANTS.STARTING_CREDITS;
+            p.weapons = ['classic', 'knife'];
+            p.activeWeapon = 'classic';
+            p.armor = 0;
+            p.armorType = 'none';
+            p.hasHelmet = false;
+            p.hasSpike = false;
           }
           const tempScore = round.attackerScore;
           round.attackerScore = round.defenderScore;
