@@ -59,6 +59,7 @@ export class GameRoom {
   private spikeCooldowns = new Map<string, number>(); // 2s cooldown for pickup/drop nuke
   private knifeVelocities = new Map<string, { x: number; y: number }>(); // ice-skating persistence
   private isPlanting = new Set<string>(); // players currently holding Q to plant/defuse
+  private initialPlayersCount = { attackers: 0, defenders: 0 };
 
   // Timing constants
   private readonly TICK_MS = 1000 / GAME_CONSTANTS.TICK_RATE;
@@ -86,10 +87,14 @@ export class GameRoom {
     this.round = this.match.createInitialRound();
 
     // Initialize players from lobby
+    let atk = 0; let def = 0;
     for (const lp of lobby.players) {
+      if (lp.team === 'attackers') atk++;
+      else if (lp.team === 'defenders') def++;
       this.players.set(lp.id, this.createPlayer(lp.id, lp.name, lp.team));
       this.inputBuffers.set(lp.id, []);
     }
+    this.initialPlayersCount = { attackers: atk, defenders: def };
   }
 
   // ─── Lifecycle ────────────────────────────
@@ -716,12 +721,46 @@ export class GameRoom {
 
   handleDisconnect(socketId: string): void {
     const player = this.players.get(socketId);
-    if (player) {
-      player.status = 'dead';
-      if (player.hasSpike) {
-        player.hasSpike = false;
-        this.spike.status = 'dropped';
-        this.spike.carrierId = null;
+    if (!player) return;
+
+    // Broadcast system chat message about disconnect
+    const msg = {
+      id: uuidv4(),
+      senderId: 'system',
+      senderName: 'SYSTEM',
+      team: 'all' as const,
+      message: `${player.name} has disconnected.`,
+      timestamp: Date.now(),
+    };
+    this.io.to(this.code).emit('lobby_chat', msg);
+
+    // Drop spike if carrying
+    if (player.hasSpike) {
+      player.hasSpike = false;
+      this.spike.status = 'dropped';
+      this.spike.carrierId = null;
+      this.spike.position = { ...player.position };
+      this.io.to(this.code).emit('spike_event', this.spike);
+    }
+
+    // Completely remove player
+    this.players.delete(socketId);
+    this.inputBuffers.delete(socketId);
+
+    // If both teams originally had > 0 players, and one team is now empty, end the match
+    const originalHasBoth = this.initialPlayersCount.attackers > 0 && this.initialPlayersCount.defenders > 0;
+    if (originalHasBoth && this.round.phase !== 'match_end') {
+      const remainingOnTeam = Array.from(this.players.values()).filter(p => p.team === player.team).length;
+      if (remainingOnTeam === 0) {
+        const winningTeam = player.team === 'attackers' ? 'defenders' : 'attackers';
+        // Force score to 1 less than win threshold so endRound ticks it to win
+        if (winningTeam === 'attackers') {
+          this.round.attackerScore = GAME_CONSTANTS.ROUNDS_TO_WIN - 1;
+        } else {
+          this.round.defenderScore = GAME_CONSTANTS.ROUNDS_TO_WIN - 1;
+        }
+        const reason = player.team === 'attackers' ? 'attackers_eliminated' : 'defenders_eliminated';
+        this.match.endRound(this.round, winningTeam, reason, this.players, this.economy, this.io, this.code, (e) => this.handleMatchEvent(e));
       }
     }
   }
