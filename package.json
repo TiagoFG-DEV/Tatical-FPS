@@ -12,6 +12,7 @@
     "dev:client": "npm run dev --workspace=packages/client",
     "dev:server": "npm run dev --workspace=packages/server",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/client && npm run build --workspace=packages/server",
+    "start": "npm run start --workspace=packages/server",
     "install:all": "npm install"
   },
   "devDependencies": {
