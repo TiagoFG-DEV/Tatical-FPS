@@ -32,6 +32,13 @@ export function GamePage() {
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Prevent accidental page reloads
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ''; // Trigger browser confirmation dialog
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     // Init renderer
     rendererRef.current = new GameRenderer(canvasRef.current);
     rendererRef.current.start();
@@ -140,6 +147,7 @@ export function GamePage() {
     socket.on('lobby_state', () => setPing(Date.now() - lastPing));
 
     return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       rendererRef.current?.destroy();
       inputRef.current?.detach();
       socket.off('game_snapshot');
