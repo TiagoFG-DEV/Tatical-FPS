@@ -500,6 +500,8 @@ export class GameRenderer {
   // Draw yellow directional arrow pointing at dropped nuke
   private renderNukeArrow(me: PlayerState): void {
     if (!this.snapshot) return;
+    if (me.team !== 'attackers') return;
+    
     const spike = this.snapshot.spike;
     if (spike.status !== 'dropped') return;
 

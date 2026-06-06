@@ -292,11 +292,6 @@ export class GameRoom {
       });
     }
 
-    // Drop weapon (G key) — drops currently active weapon except knife
-    if (input.dropWeapon) {
-      this.dropWeapon(player);
-    }
-
     // Q key: if planted + defender near spike → defuse; else if attacker in zone → plant
     // Weapon drop via Q is handled in dropWeapon when active is not knife and not in plant zone
 
@@ -687,21 +682,7 @@ export class GameRoom {
     }
   }
 
-  private dropWeapon(player: PlayerState): void {
-    // Knife is the ONLY item that can never be dropped
-    if (player.activeWeapon === 'knife') return;
-
-    const dropped = player.activeWeapon;
-    player.weapons = player.weapons.filter(w => w !== dropped);
-
-    // Switch to next best available weapon
-    const primary = player.weapons.find(w => w !== 'knife' && WEAPON_STATS[w as WeaponId].slot === 'primary');
-    const secondary = player.weapons.find(w => w !== 'knife' && WEAPON_STATS[w as WeaponId].slot === 'secondary');
-    player.activeWeapon = primary ?? secondary ?? 'knife';
-
-    // Ensure classic auto-restore
-    this.economy.ensureClassic(player);
-  }
+  // Removed dropWeapon
 
   // Team assignment is handled exclusively by LobbyManager before match start
 
