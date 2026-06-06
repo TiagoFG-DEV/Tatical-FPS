@@ -6,6 +6,7 @@ import type { MapId, Team } from '@tactical-fps/shared';
 
 const MAP_NAMES: Record<string, { name: string; desc: string }> = {
   omega:   { name: 'OMEGA',   desc: 'Massive Area · Three Sites' },
+  hexapost: { name: 'HEXAPOST', desc: 'Tactical Tile Grid' },
 };
 
 function TeamColumn({

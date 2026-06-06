@@ -99,11 +99,14 @@ export function registerLobbyHandlers(
     }
   });
 
-  socket.on('set_map', (mapId) => {
+  // ─── Set Map (Host Only) ─────────────────
+  socket.on('set_map', (mapId: any) => {
     const ok = lobbyManager.setMap(socket.id, mapId);
     if (ok) {
       const code = lobbyManager.getLobbyCode(socket.id);
       if (code) lobbyManager.broadcastLobbyState(code);
+    } else {
+      socket.emit('lobby_error', 'Cannot change map. You must be the host of a custom match.');
     }
   });
 

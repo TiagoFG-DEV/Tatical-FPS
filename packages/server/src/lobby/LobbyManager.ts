@@ -341,6 +341,18 @@ export class LobbyManager {
     return true;
   }
 
+  // ─── Set Map ────────────────────────────
+  setMap(hostId: string, mapId: MapId): boolean {
+    const lobby = this.getLobbyForSocket(hostId);
+    if (!lobby || lobby.mode !== 'custom') return false;
+
+    const host = lobby.players.find(p => p.id === hostId);
+    if (!host?.isHost) return false;
+
+    lobby.mapId = mapId;
+    return true;
+  }
+
   // Host-only: move any player to a specific team
   movePlayer(hostId: string, targetId: string, team: 'attackers' | 'defenders'): boolean {
     const lobby = this.getLobbyForSocket(hostId);

@@ -228,7 +228,7 @@ export interface KillEvent {
 // ─────────────────────────────────────────
 // MAPS
 // ─────────────────────────────────────────
-export type MapId = 'omega';
+export type MapId = 'omega' | 'hexapost';
 
 export interface MapWall {
   x1: number;
